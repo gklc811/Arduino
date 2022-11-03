@@ -2,9 +2,20 @@
 
 #include <ESP8266WebServer.h>
 
+
+
+
+IPAddress local_IP(192,168,4,22);
+IPAddress gateway(192,168,4,9);
+IPAddress subnet(255,255,255,0);
+
+
+
 /* Put your SSID & Password */
-const char * ssid = "GklWifi1"; // Enter SSID here
-const char * password = "OpexLlama-12#"; //Enter Password here
+const char * ssid = "BikeCharger"; // Enter SSID here
+const char * password = "Gokul-12#"; //Enter Password here
+
+
 
 WiFiServer server(80);
 
@@ -32,6 +43,7 @@ int time_step = 60000 * 30;
 
 long initial_time = millis();
 
+
 void setup() {
 
   // initialize GPIO2 and GPIO16 as an output
@@ -52,28 +64,34 @@ void setup() {
   digitalWrite(FC_DC_P, HIGH);
   digitalWrite(FC_DC_N, HIGH);
 
-  Serial.begin(115200);
+  // Serial.begin(115200);
+  delay(30);
 
-  Serial.println("Connecting to ");
-  Serial.println(ssid);
-  WiFi.begin(ssid, password);
 
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
-    Serial.print(".");
-  }
-  Serial.println("");
-  Serial.println("WiFi connected..!");
-  Serial.print("Got IP: ");
-  Serial.println(WiFi.localIP());
+  // Serial.print("Setting soft-AP configuration ... ");
+  // Serial.println(? "Ready" : "Failed!");
+
+  WiFi.softAPConfig(local_IP, gateway, subnet);
+  delay(30);
+
+  // Serial.print("Setting soft-AP ... ");
+  // Serial.println(WiFi.softAP(ssid,password) ? "Ready" : "Failed!");
+  WiFi.softAP(ssid,password);
+  delay(30);
+
+  // Serial.print("Soft-AP IP address = ");
+  // Serial.println(WiFi.softAPIP());
+
   server.begin();
-  Serial.println("HTTP server started");
+  delay(30);
+  // Serial.println("HTTP server started");
 
 }
 
 // the loop function runs forever
 
 void loop() {
+  led_blink();
   long current_time = millis();
   long elapsed_time = current_time - initial_time;
   if (sc_status == 0 && scf_on == 1) {
@@ -112,31 +130,31 @@ void loop() {
     }
   }
 
-  if (current_time % 1000 == 0) {
-    Serial.print("sc_status : ");
-    Serial.println(sc_status);
-    Serial.print("fc_status : ");
-    Serial.println(fc_status);
-    Serial.print("sc_on_time : ");
-    Serial.println(sc_on_time);
-    Serial.print("fc_on_time : ");
-    Serial.println(fc_on_time);
-    Serial.print("sc_off_time : ");
-    Serial.println(sc_off_time);
-    Serial.print("fc_off_time : ");
-    Serial.println(fc_off_time);
-    Serial.print("scf_on : ");
-    Serial.println(scf_on);
-    Serial.print("scf_of : ");
-    Serial.println(scf_of);
-    Serial.print("fcf_on : ");
-    Serial.println(fcf_on);
-    Serial.print("fcf_of : ");
-    Serial.println(fcf_of);
-    Serial.print("elapsed_time : ");
-    Serial.println(elapsed_time);
-    Serial.println("************************************************************************");
-  }
+  // if (current_time % 1000 == 0) {
+  //   Serial.print("sc_status : ");
+  //   Serial.println(sc_status);
+  //   Serial.print("fc_status : ");
+  //   Serial.println(fc_status);
+  //   Serial.print("sc_on_time : ");
+  //   Serial.println(sc_on_time);
+  //   Serial.print("fc_on_time : ");
+  //   Serial.println(fc_on_time);
+  //   Serial.print("sc_off_time : ");
+  //   Serial.println(sc_off_time);
+  //   Serial.print("fc_off_time : ");
+  //   Serial.println(fc_off_time);
+  //   Serial.print("scf_on : ");
+  //   Serial.println(scf_on);
+  //   Serial.print("scf_of : ");
+  //   Serial.println(scf_of);
+  //   Serial.print("fcf_on : ");
+  //   Serial.println(fcf_on);
+  //   Serial.print("fcf_of : ");
+  //   Serial.println(fcf_of);
+  //   Serial.print("elapsed_time : ");
+  //   Serial.println(elapsed_time);
+  //   Serial.println("************************************************************************");
+  // }
 
   delay(30);
 
@@ -145,13 +163,13 @@ void loop() {
     delay(10);
     return;
   }
-  Serial.println("Waiting for new client");
+  // Serial.println("Waiting for new client");
   while (!client.available()) {
     delay(20);
   }
 
   String request = client.readStringUntil('\r');
-  Serial.println(request);
+  // Serial.println(request);
   client.flush();
 
   if (request.indexOf("/scon=-") != -1) {
@@ -321,9 +339,16 @@ String seconds_to_time(long elapsed_time) {
   return time;
 }
 
+void led_blink() {
+  digitalWrite(LED, LOW);
+  delay(100);
+  digitalWrite(LED, HIGH);
+  delay(100);
+}
+
 void led_notify() {
   digitalWrite(LED, LOW);
-  delay(20);
+  delay(30);
   digitalWrite(LED, HIGH);
 }
 
